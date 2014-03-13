@@ -68,7 +68,8 @@ function setCFDRuntimeParameters {
     cfd_mem=$(grep "cfd_mem" thisCase | cut -d '=' -f2 | tr -d ' ')
     cfd_time=$(grep "cfd_time" thisCase | cut -d '=' -f2 | tr -d ' ')
     cfd_name=$(grep "cfd_name" thisCase | cut -d '=' -f2 | tr -d ' ')   
-    
+    foam_load=$(grep "foam_load" thisCase | cut -d '=' -f2)   
+ 
     if [[ ! $cfd_mem = "" ]]; then
         sed -i "s/mem=5000mb/mem=$cfd_mem/" runCFD
         echo "Running CFD with $cfd_mem of ram"
@@ -80,9 +81,15 @@ function setCFDRuntimeParameters {
     fi
     
     if [[ $cfd_name = "" ]]; then
-        cfd_name=$(basename $(pwd))
+        cfd_name=$(basename $(pwd) | cut -c 1-15)
     fi
+
     sed -i "s/N runcfd/N $cfd_name/" runCFD
+
+    if [[ ! $foam_load = "" ]]; then
+        echo "$foam_load"
+        sed -i "s|loadOF|$foam_load|" runCFD
+    fi
 }
 
 function checkFileContains {
