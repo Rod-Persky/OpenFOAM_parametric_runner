@@ -1,0 +1,44 @@
+#!/bin/bash -l
+#PBS -N C10a-setup
+#PBS -l nodes=1:ppn=1
+#PBS -l mem=4000mb
+#PBS -l walltime=00:10:00
+#PBS -j oe
+#PBS -o logs/pbs.thisCase
+
+# Case Customisation,
+#  In this script we customise the case, you do whatever is needed
+#  except it is generally single threaded - this will usually allow
+#  you to:
+#  - Do mesh refinement
+#
+#  Do not do anything else here, we can automatically detect if you
+#  were wanting to run parallel! Indeed you can even delete this file
+#  if you don't need to do anything more to the case after setting
+#  it up
+
+
+cfd_mem  = 3500mb
+cfd_time = 00:20:00
+
+
+cd $PBS_O_WORKDIR
+_script=../_scripts
+. $_script/runCase
+loadOF
+
+# Refine the mesh
+runApplication refineMesh -overwrite
+rm -r 0/polyMesh
+runApplication checkMesh
+
+
+runApplication refineMesh -overwrite
+rm -r 0/polyMesh
+runApplication checkMesh
+
+
+# Rerun addSwirlAndRotation
+rm 0/U*
+cp 0_orig/U 0/U
+runApplication addSwirlAndRotation
